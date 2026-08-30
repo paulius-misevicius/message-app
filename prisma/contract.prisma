@@ -1,0 +1,24 @@
+model User {
+  id            Int      @id @default(autoincrement())
+  createdAt     DateTime @default(now())
+  username      String   @unique
+  email         String   @unique
+  password_hash String
+
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  body      String
+
+  senderUserId Int
+  sender       User @relation("SentMessages", fields: [senderUserId], references: [id])
+
+  recipientUserId Int
+  recipient       User @relation("ReceivedMessages", fields: [recipientUserId], references: [id])
+
+  readAt DateTime?
+}
