@@ -142,7 +142,7 @@
                   "kind": "scalar"
                 }
               },
-              "password_hash": {
+              "passwordHash": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
@@ -200,8 +200,8 @@
                 "id": {
                   "column": "id"
                 },
-                "password_hash": {
-                  "column": "password_hash"
+                "passwordHash": {
+                  "column": "passwordHash"
                 },
                 "username": {
                   "column": "username"
@@ -345,7 +345,7 @@
                   "nativeType": "int4",
                   "nullable": false
                 },
-                "password_hash": {
+                "passwordHash": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": false
@@ -382,7 +382,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "22545ce06839d4a23b53834c888438ea13711633c16325030718b5cd318b947d"
+    "storageHash": "d931619d340e7f3c968ffe6c827657a928630ab77a61f58e1599a17c08197cea"
   },
   "capabilities": {
     "postgres": {

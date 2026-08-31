@@ -1,26 +1,22 @@
+import "dotenv/config";
 import { Router } from "express";
 import validator from "validator";
 import {
   checkPasswordRegex,
   checkUsernameRegex,
-} from "../helpers/regexChecker.ts";
+  checkInputType,
+} from "../helpers/generalHelpers.ts";
 import { db } from "../../prisma/db.ts";
 import bcrypt from "bcryptjs";
+import { signToken } from "../helpers/jwtHelper.ts";
 
 const authRouter = Router();
 
 authRouter.post("/register", async (req, res) => {
   let { username, email, password } = req.body;
 
-  if (
-    typeof username !== "string" ||
-    typeof email !== "string" ||
-    typeof password !== "string"
-  ) {
-    return res.status(400).json({
-      message: "Invalid inputs.",
-    });
-  }
+  const checkType = checkInputType({ username, email, password });
+  if (checkType) return res.status(400).json({ message: checkType });
 
   if (!username || !email || !password) {
     return res.status(400).json({
@@ -46,10 +42,17 @@ authRouter.post("/register", async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
-    await db.orm.public.User.create({
+    const user = await db.orm.public.User.select("id").create({
       email,
       username,
-      password_hash: hashedPassword,
+      passwordHash: hashedPassword,
+    });
+
+    const accessToken = signToken(user.id);
+
+    return res.status(201).json({
+      accessToken,
+      message: "Your account has been created!",
     });
   } catch (err) {
     if (
@@ -78,9 +81,45 @@ authRouter.post("/register", async (req, res) => {
 
     throw err;
   }
+});
 
-  return res.status(201).json({
-    message: "Your account has been created!",
+authRouter.post("/login", async (req, res) => {
+  let { username, password } = req.body;
+
+  const checkType = checkInputType({ username, password });
+  if (checkType) return res.status(400).json({ message: checkType });
+
+  if (!username || !password) {
+    return res.status(400).json({
+      message: "Missing required fields.",
+    });
+  }
+
+  username = username.trim();
+
+  const user = await db.orm.public.User.select("id", "passwordHash")
+    .where({ username })
+    .first();
+
+  if (!user) {
+    return res.status(401).json({
+      message: "Invalid credentials.",
+    });
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+
+  if (!isPasswordValid) {
+    return res.status(401).json({
+      message: "Invalid credentials.",
+    });
+  }
+
+  const accessToken = signToken(user.id);
+
+  return res.json({
+    accessToken,
+    message: "Logged in successfully!",
   });
 });
 
